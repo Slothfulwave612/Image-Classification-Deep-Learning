@@ -10,7 +10,7 @@ propagation and updation of parameters.
 We are making a 2 layer neural n/w, i.e. a neural network having one input
 layer, 1 hidden layer and 1 output layer.
 
-Functions included(8):
+Functions included(9):
 ===================
 1. initialize_parameters: will initialize our W1, b1, W2 and b2.
 2. linear_forward: will compute Z(= W.X + b).
@@ -19,7 +19,8 @@ Functions included(8):
 5. linear_backward: will compute dW, db, dA_prev.
 6. linear_activation_backward: backpropagation process for our neural network.
 7. update_parameters: for updating out parameters(W and b).
-8. save_parameters: for saving weights and biases values.
+8. forward_prop: implements forward propagation.
+9. predict: predict the result.
 
 Modules used(2):
 =============
@@ -152,3 +153,150 @@ def compute_cost(AL, Y):
     ## assertion condition for checking the shape of cost
 
     return cost
+
+def linear_backward(dZ, cache):
+    '''
+    Implements the linear portion of backward propagation for a single layer
+
+    Arguments:
+    dZ -- gradient of cost function w.r.t. the linear output
+    cache -- tuple values (A_prev, W, b) coming from forward propagation
+
+    Returns:
+    dA_prev -- gradient of cost function w.r.t. the activation of previous layer
+    dW -- gradient of cost function w.r.t. W
+    db -- gradient of cost function w.r.t. b
+    '''
+
+    A_prev, W, b = cache
+    m = A_prev.shape[1]
+
+    dW = np.dot(dZ,A_prev.T)
+    db = np.sum(dZ, axis=1, keepdims=True)
+    dA_prev = np.dot(W.T, dZ)
+    ## calculating dW, db and dA_prev
+
+    assert(dW.shape == W.shape)
+    assert(db.shape == b.shape)
+    assert(dA_prev.shape == A_prev.shape)
+    ## assertion conditions
+
+    return dA_prev, dW, db
+
+def linear_activation_backward(dA, cache, activation):
+    '''
+    Implement the backward propagation for the Linear->Activation layer
+
+    Arguments:
+    dA -- post-activation gradient for current layer l
+    cache -- tuple values (linear_cache, activation_cache)
+    activation -- the activation to be used in this layer, 'relu' or 'sigmoid'
+
+    Returns:
+    dA_prev -- gradient of cost w.r.t. the activation
+    dW -- gradient of cost w.r.t W
+    db -- gradient of cost w.r.t. b
+    '''
+    linear_cache, activation_cache = cache
+
+    if activation == 'relu':
+        dZ = relu_backward(dA, activation_cache)
+        ## relu_backward defined in nn_utils
+        dA_prev, dW, db = linear_backward(dZ, linear_cache)
+
+    elif activation == 'sigmoid':
+        dZ = sigmoid_backward(dA, activation_cache)
+        ## sigmoid_backward defined in nn_utils
+        dA_prev, dW, db = linear_backward(dZ, linear_cache)
+
+    return dA_prev, dW, db
+
+def update_parameters(parameters, grads, learning_rate):
+    '''
+    Update parameters using gradient descent
+
+    Arguments:
+    parameters -- python dictionary containing your parameters
+    grads -- python dictionary containing your gradient
+
+    Returns:
+    parameters -- python dictionary containing updated parameters
+    '''
+    
+    L = len(parameters) // 2
+    ## number of layers in the neural network
+
+    for layer in range(L):
+        parameters['W' + str(layer + 1)] = parameters['W' + str(layer + 1)] - (learning_rate * grads['dW' + str(layer + 1)])
+        parameters['W' + str(layer + 1)] = parameters['b' + str(layer + 1)] - (learning_rate * grads['db' + str(layer + 1)])        
+
+    return parameters
+
+def forward_prop(X, parameters):
+    '''
+    Implements forward propagation
+
+    Arguments:
+    X -- data
+    parameters -- value of your parameters
+
+    Returns:
+    AL -- last post-activation value
+    caches -- list of caches containing:
+              the cache of linear_relu_forward()
+              the cache of linear_sigmoid_forward()
+    '''
+
+    caches = []
+    A = X
+
+    L  = len(parameters) // 2
+    ## number of layers in the neural network
+
+    for layer in range(1,L):
+        A_prev = A
+        A, cache = linear_activation_forward(A_prev, parameters['W' + str(layer)], 
+                                             parameters['b' + str(layer)], activation='relu')
+        caches.append(cache)                                    
+    
+    AL, cache = A, cache = linear_activation_forward(A_prev, parameters['W' + str(layer)], 
+                                             parameters['b' + str(layer)], activation='relu')
+    caches.append(cache)                                             
+
+    assert(AL.shape == (1,X.shape[1]))
+    ## assertion condition
+
+    return AL, cache
+
+def predict(X, y, parameters):
+    '''
+    This function is used to predict the result 
+
+    Arguments:
+    X -- data set of examples 
+    parameters -- parameters of the trained model
+
+    Returns:
+    p -- predictions for the given dataset X
+    '''
+
+    m = X.shape[1]
+    p = np.zeros((1,m))
+
+    n = len(parameters) // 2 
+    ## number of layers in the neural network
+
+    probas, caches = forward_prop(X, parameters)
+    ## forward propagation
+
+    for i in range(probas.shape[1]):
+        if probas[0,i] > 0.5:
+            p[0,i] = 1
+        else:
+            p[0,i] = 0
+    
+    print(f'Accuracy: {*np.sum(p == y) / m) * 100}')
+
+    return p
+
+## slothfulwave612

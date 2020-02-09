@@ -23,7 +23,7 @@ Functions included(9):
 9. predict: predict the result.
 
 Modules used(2):
-=============
+================
 1. numpy: package for scientific computing with Python.
 2. nn_utils: provides some necessary functions for this module.
 '''
@@ -79,7 +79,7 @@ def linear_forward(A, W, b):
     Arguments:
     A -- activation from previous layer(or i/p data)
     W -- weight matrix
-    b -- bias matrix
+    b -- bias vector
 
     Returns:
     Z -- the input activation function(W.A + b)
@@ -143,7 +143,7 @@ def compute_cost(AL, Y):
 
     m = Y.shape[1]
 
-    cost = (-1.0/m) * np.sum(np.multiply(Y, np.log(AL)) + np.multiply(1-Y, np.log(1-AL)))
+    cost = (1./m) * (-np.dot(Y,np.log(AL).T) - np.dot(1-Y, np.log(1-AL).T))
     ## cross-entropy cost function
 
     cost = np.squeeze(cost)    
@@ -171,8 +171,8 @@ def linear_backward(dZ, cache):
     A_prev, W, b = cache
     m = A_prev.shape[1]
 
-    dW = np.dot(dZ,A_prev.T)
-    db = np.sum(dZ, axis=1, keepdims=True)
+    dW = (1/m) * np.dot(dZ,A_prev.T)
+    db = (1/m) * np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T, dZ)
     ## calculating dW, db and dA_prev
 
@@ -226,9 +226,9 @@ def update_parameters(parameters, grads, learning_rate):
     L = len(parameters) // 2
     ## number of layers in the neural network
 
-    for layer in range(L):
-        parameters['W' + str(layer + 1)] = parameters['W' + str(layer + 1)] - (learning_rate * grads['dW' + str(layer + 1)])
-        parameters['W' + str(layer + 1)] = parameters['b' + str(layer + 1)] - (learning_rate * grads['db' + str(layer + 1)])        
+    for l in range(L):
+        parameters["W" + str(l+1)] = parameters["W" + str(l+1)] - learning_rate * grads["dW" + str(l+1)]
+        parameters["b" + str(l+1)] = parameters["b" + str(l+1)] - learning_rate * grads["db" + str(l+1)]
 
     return parameters
 
@@ -253,22 +253,21 @@ def forward_prop(X, parameters):
     L  = len(parameters) // 2
     ## number of layers in the neural network
 
-    for layer in range(1,L):
-        A_prev = A
-        A, cache = linear_activation_forward(A_prev, parameters['W' + str(layer)], 
-                                             parameters['b' + str(layer)], activation='relu')
-        caches.append(cache)                                    
+    for l in range(1, L):
+        A_prev = A 
+        A, cache = linear_activation_forward(A_prev, parameters['W' + str(l)], parameters['b' + str(l)], activation = "relu")
+        caches.append(cache)
     
-    AL, cache = A, cache = linear_activation_forward(A_prev, parameters['W' + str(layer)], 
-                                             parameters['b' + str(layer)], activation='relu')
-    caches.append(cache)                                             
+    # Implement LINEAR -> SIGMOID. Add "cache" to the "caches" list.
+    AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation = "sigmoid")
+    caches.append(cache)
 
     assert(AL.shape == (1,X.shape[1]))
     ## assertion condition
 
     return AL, cache
 
-def predict(X, y, parameters):
+def predict(X, y, parameters, accuracy):
     '''
     This function is used to predict the result 
 
@@ -283,20 +282,15 @@ def predict(X, y, parameters):
     m = X.shape[1]
     p = np.zeros((1,m))
 
-    n = len(parameters) // 2 
-    ## number of layers in the neural network
-
     probas, caches = forward_prop(X, parameters)
     ## forward propagation
 
-    for i in range(probas.shape[1]):
+    for i in range(0, probas.shape[1]):
         if probas[0,i] > 0.5:
             p[0,i] = 1
         else:
             p[0,i] = 0
     
-    print(f'Accuracy: {*np.sum(p == y) / m) * 100}')
-
-    return p
+    print(f'{accuracy}: {np.sum((p == y)/m)}')
 
 ## slothfulwave612

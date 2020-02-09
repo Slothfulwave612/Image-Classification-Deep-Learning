@@ -10,17 +10,15 @@ Functions included(5):
 2. relu: implements the relu operation.
 3. sigmoid_backward: implements the backpropagation for single sigmoid unit.
 4. relu_backward: implements the backpropagation for single relu unit.
-5. load_data: loads the train and test data set.
+5. load_data: loads the train and test data
 
-Modules used(3):
+Modules used(2):
 =============
 1. numpy: package for scientific computing with Python.
-2. matplotlib.pyplot: plotting library in Python.
-3. h5py: pythonic interface to the HDF5 binary data format.
+2. h5py: pythonic interface to the HDF5 binary data format.
 '''
 
 import numpy as np
-import matplotlib.pyplot as ptl
 import h5py
 
 def sigmoid(Z):
@@ -77,7 +75,7 @@ def sigmoid_backward(dA, cache):
 
     Z = cache
 
-    s = 1.0 / (1 + np.exp(-Z))
+    s = 1 / (1 + np.exp(-Z))
     dZ = dA * s * (1-s)
 
     assert(dZ.shape == Z.shape)
@@ -116,10 +114,9 @@ def load_data():
     train_set_y_orig -- the traning dataset with label value
     test_set_x_orig -- the test dataset with feature value
     test_set_y_orig -- the test dataset with label value
-    classes -- classes present in the train dataset
     '''
 
-    train_dataset = h5py.File('../data/train_catvnoncat.h5', 'r')
+    train_dataset = h5py.File(r'../data/train_catvnoncat.h5', 'r')
     ## reading from h5 file(train_catvnoncat.h5)
     train_set_x_orig = np.array(train_dataset['train_set_x'][:])
     ## train set featuers
@@ -130,16 +127,13 @@ def load_data():
     ## reading from h5 file(test_catvnoncat.h5)
     test_set_x_orig = np.array(test_dataset['test_set_x'][:])
     ## test set features
-    test_set_y_orig = np.array(test_dataset['test_Set_y'][:])
+    test_set_y_orig = np.array(test_dataset['test_set_y'][:])
     ## test set labels
-
-    classes = np.array(test_dataset['list_classes'][:])
-    ## the list of classes
 
     train_set_y_orig = train_set_y_orig.reshape((1, train_set_y_orig.shape[0]))
     test_set_y_orig = test_set_y_orig.reshape((1, test_set_y_orig.shape[0]))
     ## the above code will convert shape (14,) to (1,14)
 
-    return train_set_x_orig, train_set_y_orig, test_set_x_orig, test_set_y_orig, classes
+    return train_set_x_orig, train_set_y_orig, test_set_x_orig, test_set_y_orig
 
 ## slothfulwave612

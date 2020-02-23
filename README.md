@@ -31,3 +31,5 @@
       * When the computer interprets a new image, it will convert the image to an array by using the same technique, which then compares the patterns of numbers against the already-known objects.
       * The computer then allots confidence scores for each class. The class with the highest confidence score is usually the predicted one.
       ![rgb](https://user-images.githubusercontent.com/33928040/75111086-ffb0a200-565b-11ea-8523-9ce34af0d48d.PNG)
+
+**Reference**: https://www.coursera.org/learn/neural-networks-deep-learning/home/welcome
